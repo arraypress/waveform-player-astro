@@ -1,0 +1,337 @@
+---
+/**
+ * WaveformPlayer.astro
+ * --------------------
+ *
+ * Astro component wrapper around `@arraypress/waveform-player`. Exposes
+ * every library option as a typed prop and emits the equivalent
+ * `data-*` attribute on the mount container. The library's own
+ * auto-initialiser (registered globally when its script loads) picks up
+ * the container and renders the player into it.
+ *
+ * ## Why a wrapper?
+ *
+ * The core library is intentionally framework-agnostic vanilla JS. That
+ * works great everywhere (WordPress, Shopify, plain HTML) but means
+ * Astro users have to hand-stringify every option as a `data-*`
+ * attribute:
+ *
+ * ```astro
+ * <div data-waveform-player
+ *      data-url={url}
+ *      data-waveform-style={style}
+ *      data-bar-width={String(2)}
+ *      data-markers={JSON.stringify(markers)}
+ *      data-show-bpm="true">
+ * </div>
+ * ```
+ *
+ * This wrapper turns that into:
+ *
+ * ```astro
+ * <WaveformPlayer
+ *   url={url}
+ *   waveformStyle={style}
+ *   barWidth={2}
+ *   markers={markers}
+ *   showBPM
+ * />
+ * ```
+ *
+ * Typed props, correct stringification, omission semantics that let the
+ * library's defaults shine through.
+ *
+ * ## Setup
+ *
+ * Load the core library's JS + CSS once in your layout (the wrapper
+ * intentionally does NOT do this for you — you may want a CDN, a
+ * self-hosted asset, or the bundled npm path):
+ *
+ * ```astro
+ * ---
+ * import '@arraypress/waveform-player/dist/waveform-player.css';
+ * import wfpJsUrl from '@arraypress/waveform-player/dist/waveform-player.min.js?url';
+ * ---
+ * <script src={wfpJsUrl} is:inline></script>
+ * ```
+ *
+ * Then drop `<WaveformPlayer>` anywhere.
+ *
+ * ## Lazy mounting
+ *
+ * Passing `lazy` switches the init attribute from `data-waveform-player`
+ * to `data-waveform-player-lazy` and ships a one-time
+ * `IntersectionObserver` script that promotes lazy mounts when they
+ * approach the viewport. The script self-deduplicates via
+ * `window.__wfpLazyMountBound` so multiple `<WaveformPlayer lazy>`
+ * instances on the same page reuse a single observer.
+ *
+ * @example Basic
+ *   <WaveformPlayer url="/audio/track.mp3" title="My Track" />
+ *
+ * @example Pre-computed peaks (recommended for catalogues)
+ *   <WaveformPlayer
+ *     url="/audio/track.mp3"
+ *     waveform="/peaks/track.json"
+ *     waveformStyle="bars"
+ *     barWidth={3}
+ *     showBPM
+ *   />
+ *
+ * @example External mode (paired with `@arraypress/waveform-bar`)
+ *   <WaveformPlayer
+ *     url={track.url}
+ *     audioMode="external"
+ *     showInfo={false}
+ *     waveformStyle="seekbar"
+ *   />
+ *
+ * @example Lazy-mount grid item
+ *   <WaveformPlayer url={preview.url} lazy />
+ */
+
+import type { WaveformPlayerProps } from './types';
+
+const {
+	// Audio
+	url,
+	audioMode,
+	preload,
+	// Waveform visualisation
+	waveformStyle,
+	height,
+	samples,
+	barWidth,
+	barSpacing,
+	waveform,
+	// Colours
+	colorPreset,
+	waveformColor,
+	progressColor,
+	buttonColor,
+	buttonHoverColor,
+	textColor,
+	textSecondaryColor,
+	backgroundColor,
+	borderColor,
+	// Playback controls
+	playbackRate,
+	showPlaybackSpeed,
+	playbackRates,
+	// UI toggles
+	showControls,
+	showInfo,
+	showTime,
+	showHoverTime,
+	showBPM,
+	buttonAlign,
+	// Markers
+	markers,
+	showMarkers,
+	// Metadata
+	title,
+	subtitle,
+	artwork,
+	album,
+	// Behaviour
+	autoplay,
+	singlePlay,
+	playOnSeek,
+	enableMediaSession,
+	// Icons
+	playIcon,
+	pauseIcon,
+	// Astro extras
+	lazy = false,
+	id,
+	class: className,
+	style,
+} = Astro.props as WaveformPlayerProps;
+
+/**
+ * Build the data-attribute map programmatically so an omitted prop
+ * never emits an attribute. This is the contract that lets the library
+ * apply its own defaults when a prop is left out, and keeps the
+ * resulting DOM tidy.
+ *
+ * @type {Record<string, string>}
+ */
+const data: Record<string, string> = {};
+
+/**
+ * Helper — set a string attr only when the value is non-null/non-undefined.
+ * Empty strings are preserved (the library treats them as "set but blank").
+ */
+const setStr = (key: string, value: string | undefined | null): void => {
+	if (value === undefined || value === null) return;
+	data[key] = value;
+};
+
+/**
+ * Helper — set a numeric attr only when the value is a finite number.
+ */
+const setNum = (key: string, value: number | undefined | null): void => {
+	if (value === undefined || value === null) return;
+	if (typeof value !== 'number' || !Number.isFinite(value)) return;
+	data[key] = String(value);
+};
+
+/**
+ * Helper — set a boolean attr as the string `'true'` / `'false'`.
+ * Required because the library compares against `=== 'true'`.
+ */
+const setBool = (key: string, value: boolean | undefined | null): void => {
+	if (value === undefined || value === null) return;
+	data[key] = value ? 'true' : 'false';
+};
+
+// ─── Audio source ────────────────────────────────────────────────────────
+setStr('data-url', url);
+setStr('data-audio-mode', audioMode ?? null);
+setStr('data-preload', preload ?? null);
+
+// ─── Waveform visualisation ──────────────────────────────────────────────
+setStr('data-waveform-style', waveformStyle ?? null);
+setNum('data-height', height);
+setNum('data-samples', samples);
+setNum('data-bar-width', barWidth);
+setNum('data-bar-spacing', barSpacing);
+
+// `waveform` accepts an array (JSON-stringify it) or a string (URL/inline
+// JSON — pass through). The library handles both forms.
+if (Array.isArray(waveform)) {
+	data['data-waveform'] = JSON.stringify(waveform);
+} else if (typeof waveform === 'string') {
+	data['data-waveform'] = waveform;
+}
+
+// ─── Colours ─────────────────────────────────────────────────────────────
+// `colorPreset` is `'dark' | 'light' | null` — only emit when non-null.
+if (colorPreset === 'dark' || colorPreset === 'light') {
+	data['data-color-preset'] = colorPreset;
+}
+setStr('data-waveform-color', waveformColor ?? null);
+setStr('data-progress-color', progressColor ?? null);
+setStr('data-button-color', buttonColor ?? null);
+setStr('data-button-hover-color', buttonHoverColor ?? null);
+setStr('data-text-color', textColor ?? null);
+setStr('data-text-secondary-color', textSecondaryColor ?? null);
+setStr('data-background-color', backgroundColor ?? null);
+setStr('data-border-color', borderColor ?? null);
+
+// ─── Playback controls ───────────────────────────────────────────────────
+setNum('data-playback-rate', playbackRate);
+setBool('data-show-playback-speed', showPlaybackSpeed);
+if (Array.isArray(playbackRates) && playbackRates.length > 0) {
+	data['data-playback-rates'] = JSON.stringify(playbackRates);
+}
+
+// ─── UI toggles ──────────────────────────────────────────────────────────
+setBool('data-show-controls', showControls);
+setBool('data-show-info', showInfo);
+setBool('data-show-time', showTime);
+setBool('data-show-hover-time', showHoverTime);
+// The library's data-attribute parser reads `data-show-bpm` (lowercased
+// `bpm`), NOT `data-show-b-p-m`. Get this wrong and BPM never displays.
+setBool('data-show-bpm', showBPM);
+setStr('data-button-align', buttonAlign ?? null);
+
+// ─── Markers ─────────────────────────────────────────────────────────────
+if (Array.isArray(markers) && markers.length > 0) {
+	data['data-markers'] = JSON.stringify(markers);
+}
+setBool('data-show-markers', showMarkers);
+
+// ─── Metadata ────────────────────────────────────────────────────────────
+setStr('data-title', title ?? null);
+setStr('data-subtitle', subtitle ?? null);
+setStr('data-artwork', artwork ?? null);
+setStr('data-album', album ?? null);
+
+// ─── Behaviour ───────────────────────────────────────────────────────────
+setBool('data-autoplay', autoplay);
+setBool('data-single-play', singlePlay);
+setBool('data-play-on-seek', playOnSeek);
+setBool('data-enable-media-session', enableMediaSession);
+
+// ─── Icons ───────────────────────────────────────────────────────────────
+// Pass icon markup verbatim. Consumers are responsible for ensuring
+// the HTML they hand us is safe to inject.
+setStr('data-play-icon', playIcon ?? null);
+setStr('data-pause-icon', pauseIcon ?? null);
+
+/**
+ * The init attribute — the library auto-init scans for
+ * `[data-waveform-player]`. For lazy mounting we emit
+ * `[data-waveform-player-lazy]` instead and let our companion script
+ * promote it on viewport entry.
+ */
+const initAttr = lazy ? 'data-waveform-player-lazy' : 'data-waveform-player';
+---
+
+<div
+	{...{ [initAttr]: '' }}
+	{...data}
+	id={id}
+	class:list={['wfp-host', className]}
+	style={style}
+></div>
+
+{lazy && (
+	<script is:inline>
+		/**
+		 * Lazy-mount watcher for `<WaveformPlayer lazy>` instances.
+		 *
+		 * Installs a single `IntersectionObserver` (deduplicated via a
+		 * `window` flag) that promotes `data-waveform-player-lazy` to
+		 * `data-waveform-player` once an element approaches the viewport,
+		 * then triggers `WaveformPlayer.init()` to mount it.
+		 *
+		 * The 200 px `rootMargin` gives the browser headroom to fetch and
+		 * decode the audio so the player is ready by the time the user
+		 * scrolls it into actual view — eliminates the "Unable to load
+		 * audio" stutter you get when 15+ players try to decode at once
+		 * on page load.
+		 *
+		 * Re-runs on Astro `astro:page-load` so cross-page navigations
+		 * pick up newly-rendered lazy mounts.
+		 */
+		(function () {
+			if (window.__wfpLazyMountBound) return;
+			window.__wfpLazyMountBound = true;
+
+			function mountLazy() {
+				if (!window.WaveformPlayer) return;
+				const targets = document.querySelectorAll('[data-waveform-player-lazy]');
+				if (!targets.length) return;
+
+				const io = new IntersectionObserver(
+					(entries) => {
+						entries.forEach((entry) => {
+							if (!entry.isIntersecting) return;
+							const el = entry.target;
+							el.removeAttribute('data-waveform-player-lazy');
+							el.setAttribute('data-waveform-player', '');
+							io.unobserve(el);
+							try {
+								window.WaveformPlayer.init();
+							} catch (err) {
+								console.error('[waveform-player-astro] init failed:', err);
+							}
+						});
+					},
+					{ rootMargin: '200px 0px 200px 0px', threshold: 0.01 }
+				);
+
+				targets.forEach((target) => io.observe(target));
+			}
+
+			document.addEventListener('astro:page-load', mountLazy);
+			if (document.readyState !== 'loading') {
+				mountLazy();
+			} else {
+				document.addEventListener('DOMContentLoaded', mountLazy);
+			}
+		})();
+	</script>
+)}

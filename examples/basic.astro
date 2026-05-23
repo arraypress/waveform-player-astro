@@ -1,0 +1,129 @@
+---
+/**
+ * examples/basic.astro
+ * --------------------
+ *
+ * Reference page showing every <WaveformPlayer> usage pattern this
+ * package supports. Copy/paste into your own Astro project's
+ * `src/pages/` directory to play with the component live.
+ *
+ * Each section is a self-contained demonstration with a short
+ * description of when you'd reach for it.
+ */
+import WaveformPlayer from '@arraypress/waveform-player-astro';
+import '@arraypress/waveform-player/dist/waveform-player.css';
+import wfpJsUrl from '@arraypress/waveform-player/dist/waveform-player.min.js?url';
+---
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<title>WaveformPlayer Astro — examples</title>
+		<!-- Load the core library once. The wrapper does not do this
+		     for you because you might want a CDN, a self-hosted asset,
+		     or the bundled npm path. -->
+		<script src={wfpJsUrl} is:inline></script>
+	</head>
+
+	<body style="max-width: 720px; margin: 2rem auto; font-family: system-ui;">
+		<h1>WaveformPlayer Astro examples</h1>
+
+		<section>
+			<h2>1. Minimal</h2>
+			<p>Just a URL. Everything else falls back to library defaults.</p>
+			<WaveformPlayer url="/audio/track.mp3" />
+		</section>
+
+		<section>
+			<h2>2. With metadata + chosen style</h2>
+			<p>Title, subtitle, bar-style waveform with custom width and spacing.</p>
+			<WaveformPlayer
+				url="/audio/track.mp3"
+				title="Midnight Dreams"
+				subtitle="The Wavelength"
+				artwork="/img/cover.jpg"
+				waveformStyle="bars"
+				barWidth={3}
+				barSpacing={1}
+				height={80}
+			/>
+		</section>
+
+		<section>
+			<h2>3. Pre-computed peaks (recommended for catalogues)</h2>
+			<p>Skip the Web Audio decode step entirely by pointing at a peaks JSON.</p>
+			<WaveformPlayer
+				url="/audio/track.mp3"
+				waveform="/peaks/track.json"
+				title="Pre-decoded"
+			/>
+		</section>
+
+		<section>
+			<h2>4. Chapter markers</h2>
+			<p>Clickable seek points overlaid on the waveform.</p>
+			<WaveformPlayer
+				url="/audio/podcast.mp3"
+				title="Episode 42"
+				subtitle="with Guest"
+				markers={[
+					{ time: 0, label: 'Intro' },
+					{ time: 60, label: 'Main topic', color: '#a855f7' },
+					{ time: 600, label: 'Q&A' },
+				]}
+				height={80}
+			/>
+		</section>
+
+		<section>
+			<h2>5. Full kitchen sink</h2>
+			<p>BPM detection, playback speed menu, custom colours, Media Session API.</p>
+			<WaveformPlayer
+				url="/audio/track.mp3"
+				title="Show me everything"
+				subtitle="Producer X"
+				artwork="/img/cover.jpg"
+				album="The Album"
+				waveformStyle="mirror"
+				waveformColor="rgba(255,255,255,0.3)"
+				progressColor="rgba(168,85,247,0.9)"
+				colorPreset="dark"
+				showBPM
+				showPlaybackSpeed
+				playbackRates={[0.5, 0.75, 1, 1.25, 1.5, 2]}
+				enableMediaSession
+			/>
+		</section>
+
+		<section>
+			<h2>6. Lazy-mounted grid</h2>
+			<p>
+				Each player defers decoding until it scrolls into view. The
+				wrapper installs one shared <code>IntersectionObserver</code>
+				the first time it sees a <code>lazy</code> instance.
+			</p>
+			<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+				<WaveformPlayer url="/audio/sample-1.mp3" title="Sample 1" lazy />
+				<WaveformPlayer url="/audio/sample-2.mp3" title="Sample 2" lazy />
+				<WaveformPlayer url="/audio/sample-3.mp3" title="Sample 3" lazy />
+				<WaveformPlayer url="/audio/sample-4.mp3" title="Sample 4" lazy />
+			</div>
+		</section>
+
+		<section>
+			<h2>7. External audio mode</h2>
+			<p>
+				Visualisation only — pair with <code>@arraypress/waveform-bar</code>
+				or your own audio controller. The player emits
+				<code>waveformplayer:request-play|pause|seek</code> events.
+			</p>
+			<WaveformPlayer
+				url="/audio/track.mp3"
+				audioMode="external"
+				waveformStyle="seekbar"
+				showInfo={false}
+				height={32}
+			/>
+		</section>
+	</body>
+</html>
