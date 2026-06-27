@@ -13,12 +13,17 @@ import wfpJsUrl from '@arraypress/waveform-player/dist/waveform-player.min.js?ur
 <script src={wfpJsUrl} is:inline></script>
 
 <WaveformPlayer
-  url="/audio/track.mp3"
+  src="/audio/track.mp3"
   title="My Track"
   waveformStyle="bars"
   showBPM
 />
 ```
+
+> **Naming note.** `src` is shorthand for `url`. The visual style is `waveformStyle`
+> — **not** `style`, which (as in any Astro component) is the host element's inline
+> CSS. So `style={...}` styles the container; `waveformStyle="bars"` picks the
+> waveform look.
 
 ## Installation
 
@@ -130,7 +135,8 @@ Every prop maps 1:1 to an option on the core library. Omitting a prop emits no `
 
 | Prop        | Type                                  | Default      | Description |
 | ----------- | ------------------------------------- | ------------ | ----------- |
-| `url`       | `string` *(required)*                 | —            | Audio file URL. |
+| `url`       | `string`                              | —            | Audio file URL. Provide one of `url` or `src`. |
+| `src`       | `string`                              | —            | Shorthand alias for `url` (the core's `data-src`). `url` wins if both are set. |
 | `audioMode` | `'self' \| 'external'`                | `'self'`     | `'external'` renders waveform only and emits request events. |
 | `preload`   | `'auto' \| 'metadata' \| 'none'`      | `'metadata'` | Browser preload hint. |
 
@@ -179,6 +185,14 @@ All optional. `colorPreset` controls the auto theme, and any individual colour w
 | `showHoverTime` | `boolean`                                  | `false`  | Reserved. |
 | `showBPM`       | `boolean`                                  | `false`  | Detect and display BPM. |
 | `buttonAlign`   | `'auto' \| 'top' \| 'center' \| 'bottom'`  | `'auto'` | Play-button vertical alignment. |
+
+### Accessibility & error UI
+
+| Prop             | Type      | Default               | Description |
+| ---------------- | --------- | --------------------- | ----------- |
+| `accessibleSeek` | `boolean` | `true`                | Render the waveform as an ARIA slider (keyboard-seekable). |
+| `seekLabel`      | `string`  | —                     | Accessible name for the seek slider (falls back to the title). |
+| `errorText`      | `string`  | `'Unable to load audio'` | Message shown when audio fails to load. |
 
 ### Markers
 

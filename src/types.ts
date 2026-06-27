@@ -95,13 +95,15 @@ export interface WaveformPlayerProps
 	// ─────────────────────────────────────────────────────────────────────
 
 	/**
-	 * Audio file URL. Required for the player to do anything useful.
+	 * Audio file URL. Provide one of `url` or its shorthand alias `src`
+	 * (inherited from the core options) — the player needs a source to do
+	 * anything useful.
 	 *
 	 * Supported formats are whatever the user's browser supports — MP3,
 	 * WAV, OGG, AAC, etc. CORS headers must allow cross-origin loads if
 	 * hosted on a different domain.
 	 */
-	url: string;
+	url?: string;
 
 	// ─────────────────────────────────────────────────────────────────────
 	// Astro-specific extras

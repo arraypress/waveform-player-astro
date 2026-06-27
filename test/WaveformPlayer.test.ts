@@ -533,3 +533,39 @@ describe('<WaveformPlayer> — realistic combined usage', () => {
 		expect(getAttr(html, 'data-enable-media-session')).toBe('true');
 	});
 });
+
+// ─── Shorthand alias + accessibility / error parity ──────────────────────
+
+describe('<WaveformPlayer> — src alias + accessibility + error parity', () => {
+	it('accepts the `src` shorthand and emits it as the canonical data-url', async () => {
+		const html = await render({ src: '/audio/track.mp3' } as WaveformPlayerProps);
+		expect(getAttr(html, 'data-url')).toBe('/audio/track.mp3');
+	});
+
+	it('prefers canonical `url` over `src` when both are given', async () => {
+		const html = await render({
+			url: '/canonical.mp3',
+			src: '/alias.mp3',
+		} as WaveformPlayerProps);
+		expect(getAttr(html, 'data-url')).toBe('/canonical.mp3');
+	});
+
+	it('emits data-error-text / data-accessible-seek / data-seek-label', async () => {
+		const html = await render({
+			url: '/audio/track.mp3',
+			errorText: 'Could not load',
+			accessibleSeek: false,
+			seekLabel: 'Scrub track',
+		});
+		expect(getAttr(html, 'data-error-text')).toBe('Could not load');
+		expect(getAttr(html, 'data-accessible-seek')).toBe('false');
+		expect(getAttr(html, 'data-seek-label')).toBe('Scrub track');
+	});
+
+	it('omits the accessibility/error attrs when their props are absent', async () => {
+		const html = await render({ url: '/audio/track.mp3' });
+		expectNoAttr(html, 'data-error-text');
+		expectNoAttr(html, 'data-accessible-seek');
+		expectNoAttr(html, 'data-seek-label');
+	});
+});

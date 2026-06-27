@@ -110,6 +110,7 @@ import type { WaveformPlayerProps } from './types';
 const {
 	// Audio
 	url,
+	src,
 	audioMode,
 	preload,
 	// Waveform visualisation
@@ -141,6 +142,10 @@ const {
 	showHoverTime,
 	showBPM,
 	buttonAlign,
+	// Accessibility + error UI
+	accessibleSeek,
+	seekLabel,
+	errorText,
 	// Markers
 	markers,
 	showMarkers,
@@ -202,7 +207,9 @@ const setBool = (key: string, value: boolean | undefined | null): void => {
 };
 
 // ─── Audio source ────────────────────────────────────────────────────────
-setStr('data-url', url);
+// `src` is the core's shorthand alias for `url`; emit a single canonical
+// `data-url` from whichever was provided (`url` wins if both are set).
+setStr('data-url', url ?? src ?? null);
 setStr('data-audio-mode', audioMode ?? null);
 setStr('data-preload', preload ?? null);
 
@@ -256,6 +263,11 @@ setBool('data-show-hover-time', showHoverTime);
 // `bpm`), NOT `data-show-b-p-m`. Get this wrong and BPM never displays.
 setBool('data-show-bpm', showBPM);
 setStr('data-button-align', buttonAlign ?? null);
+
+// ─── Accessibility + error UI ────────────────────────────────────────────
+setBool('data-accessible-seek', accessibleSeek);
+setStr('data-seek-label', seekLabel ?? null);
+setStr('data-error-text', errorText ?? null);
 
 // ─── Markers ─────────────────────────────────────────────────────────────
 if (Array.isArray(markers) && markers.length > 0) {
