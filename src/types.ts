@@ -189,6 +189,12 @@ export interface WaveformPlayerProps {
 	barSpacing?: number;
 
 	/**
+	 * Rounded bar-cap radius in pixels (bars/mirror styles). `0` = square.
+	 * @default 0
+	 */
+	barRadius?: number;
+
+	/**
 	 * Pre-computed peaks data. See {@link WaveformPeaks}.
 	 *
 	 * - `number[]` is JSON-stringified into the emitted attribute.
@@ -211,10 +217,10 @@ export interface WaveformPlayerProps {
 	 */
 	colorPreset?: ColorPreset;
 
-	/** Colour of the unplayed waveform peaks (CSS colour string). */
-	waveformColor?: string;
-	/** Colour of the played-through portion of the waveform. */
-	progressColor?: string;
+	/** Colour of the unplayed waveform peaks. A CSS colour string, or an array of stops for a vertical gradient (e.g. `['#fafafa', '#71717a']`). */
+	waveformColor?: string | string[];
+	/** Colour of the played-through portion. Also accepts an array of stops for a gradient. */
+	progressColor?: string | string[];
 	/** Border/text colour of the play button. */
 	buttonColor?: string;
 	/** Play button hover colour. */

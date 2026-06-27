@@ -103,6 +103,7 @@ const {
 	samples,
 	barWidth,
 	barSpacing,
+	barRadius,
 	waveform,
 	// Colours
 	colorPreset,
@@ -196,6 +197,7 @@ setNum('data-height', height);
 setNum('data-samples', samples);
 setNum('data-bar-width', barWidth);
 setNum('data-bar-spacing', barSpacing);
+setNum('data-bar-radius', barRadius);
 
 // `waveform` accepts an array (JSON-stringify it) or a string (URL/inline
 // JSON — pass through). The library handles both forms.
@@ -210,8 +212,12 @@ if (Array.isArray(waveform)) {
 if (colorPreset === 'dark' || colorPreset === 'light') {
 	data['data-color-preset'] = colorPreset;
 }
-setStr('data-waveform-color', waveformColor ?? null);
-setStr('data-progress-color', progressColor ?? null);
+// Colours accept an array of gradient stops — JSON-encode those so the
+// library's data-attribute parser can rebuild the gradient.
+if (Array.isArray(waveformColor)) data['data-waveform-color'] = JSON.stringify(waveformColor);
+else setStr('data-waveform-color', waveformColor ?? null);
+if (Array.isArray(progressColor)) data['data-progress-color'] = JSON.stringify(progressColor);
+else setStr('data-progress-color', progressColor ?? null);
 setStr('data-button-color', buttonColor ?? null);
 setStr('data-button-hover-color', buttonHoverColor ?? null);
 setStr('data-text-color', textColor ?? null);
