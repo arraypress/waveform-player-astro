@@ -5,6 +5,28 @@ All notable changes to `@arraypress/waveform-player-astro` are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- Types are now sourced directly from the core
+  `@arraypress/waveform-player` package — a single source of truth. The
+  shared option types (`WaveformStyle`, `ColorPreset`, `AudioMode`,
+  `AudioPreload`, `ButtonAlign`, `WaveformMarker`, `WaveformPeaks`) are
+  re-exported from the core, and `WaveformPlayerProps` now `extends` the
+  core's `WaveformPlayerOptions` instead of re-declaring every option, so
+  the two packages can no longer drift. Every previously-exported type name
+  is preserved.
+- Bumped the `@arraypress/waveform-player` peer (and dev) dependency to
+  `^1.8.0`, which ships the hand-authored `index.d.ts` these types adopt.
+
+### Added
+
+- `accessibleSeek`, `seekLabel`, `barRadius`, and the gradient-array forms
+  of `waveformColor` / `progressColor` are now exposed on
+  `WaveformPlayerProps` (inherited from the core option surface), filling
+  gaps where the previous hand-maintained copy had missed or drifted.
+
 ## [0.1.2] — 2026-06-27
 
 ### Changed

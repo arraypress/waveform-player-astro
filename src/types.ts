@@ -3,122 +3,89 @@
  * @description
  * Public TypeScript types for `@arraypress/waveform-player-astro`.
  *
- * Every option exposed by the core `@arraypress/waveform-player` library is
- * surfaced here as a typed prop. The prop names match the library option
- * names 1:1 (camelCase) — the Astro component handles the conversion to the
- * library's `data-*` attribute contract (kebab-case) under the hood.
+ * The shared option surface — visual styles, colour presets, audio modes,
+ * markers, peaks, and the full per-option list — is owned by the core
+ * `@arraypress/waveform-player` library, which ships hand-authored type
+ * declarations (`index.d.ts`). This wrapper re-exports those shared types
+ * verbatim (so consumers can keep importing them from this package) and
+ * derives its component prop interface from the core's
+ * {@link WaveformPlayerOptions} rather than re-declaring it. That keeps the
+ * two packages from drifting: any option the core adds (or renames) flows
+ * through here automatically, and there is a single source of truth.
  *
- * Props are intentionally all optional (except `url`, which the library
- * requires to load audio). When a prop is omitted, the wrapper emits no
- * corresponding `data-*` attribute, letting the core library apply its
- * own internal defaults.
+ * The prop names match the library option names 1:1 (camelCase) — the
+ * Astro component handles the conversion to the library's `data-*`
+ * attribute contract (kebab-case) under the hood.
+ *
+ * Props are intentionally all optional (except `url`, which the wrapper
+ * requires so the player always has audio to load). When a prop is
+ * omitted, the wrapper emits no corresponding `data-*` attribute, letting
+ * the core library apply its own internal defaults.
  *
  * @see {@link https://github.com/arraypress/waveform-player} — core library
  */
 
-/**
- * Visual style of the waveform rendering.
- *
- * - `bars`    — classic vertical bars from the baseline up
- * - `mirror`  — symmetrical bars mirrored around the centre line
- * - `line`    — connected line graph
- * - `blocks`  — chunky square blocks
- * - `dots`    — dotted plot
- * - `seekbar` — minimal seek bar with no peak detail
- */
-export type WaveformStyle =
-	| 'bars'
-	| 'mirror'
-	| 'line'
-	| 'blocks'
-	| 'dots'
-	| 'seekbar';
+import type { WaveformPlayerOptions } from '@arraypress/waveform-player';
 
 /**
- * Forced colour scheme. `null` (the default) auto-detects from the page
- * theme and `prefers-color-scheme`.
- */
-export type ColorPreset = 'dark' | 'light' | null;
-
-/**
- * How the player handles audio.
+ * Shared option types, re-exported from the core library so consumers can
+ * continue to import them from `@arraypress/waveform-player-astro`:
  *
- * - `self`     — (default) the player owns an `<audio>` element and plays
- *   the URL itself. Use this for standalone players.
- * - `external` — the player renders the waveform visualisation only and
- *   dispatches `waveformplayer:request-play|pause|seek` events for an
- *   external controller (e.g. `@arraypress/waveform-bar`) to handle.
- *   Drive the visualisation from the controller by calling
- *   `setProgress()` and `setPlayingState()` on the player instance.
- */
-export type AudioMode = 'self' | 'external';
-
-/**
- * Browser preload hint passed through to the underlying `<audio>` element.
+ * ```ts
+ * import type {
+ *   WaveformStyle,
+ *   WaveformMarker,
+ *   WaveformPeaks,
+ * } from '@arraypress/waveform-player-astro';
+ * ```
  *
- * - `auto`     — fetch the entire file ahead of time
- * - `metadata` — (default) fetch only enough to determine duration
- * - `none`     — fetch nothing until play is requested
+ * The core's `index.d.ts` is the single source of truth for their shape —
+ * this wrapper no longer maintains parallel copies that can drift.
  */
-export type AudioPreload = 'auto' | 'metadata' | 'none';
-
-/**
- * Vertical alignment of the play button relative to the waveform.
- *
- * `auto` picks `bottom` for the `bars` style and `center` for everything
- * else.
- */
-export type ButtonAlign = 'auto' | 'top' | 'center' | 'bottom';
-
-/**
- * A clickable chapter marker rendered on top of the waveform.
- *
- * Clicking a marker seeks the player to its `time`. Markers also display
- * their `label` as a tooltip on hover.
- */
-export interface WaveformMarker {
-	/** Time in seconds at which the marker appears. */
-	time: number;
-	/** Short label shown as a tooltip. */
-	label: string;
-	/** Optional override colour (CSS colour string). Falls back to the
-	 *  player's progress colour. */
-	color?: string;
-}
-
-/**
- * Pre-computed waveform peaks, OR a string pointer to them.
- *
- * - `number[]`            — inline array of peak amplitudes (0..1)
- * - `string` (.json URL)  — JSON file URL the library will `fetch()`
- * - `string` (JSON array) — inline JSON string the library will parse
- * - `null` / omitted      — the library decodes the audio file with the
- *   Web Audio API at load time (slowest path)
- *
- * Pre-computing peaks with `@arraypress/waveform-gen` at build time is
- * strongly recommended for any catalogue of more than a handful of
- * tracks; it removes a full Web Audio decode from the render path.
- */
-export type WaveformPeaks = number[] | string | null;
+export type {
+	WaveformStyle,
+	ColorPreset,
+	AudioMode,
+	AudioPreload,
+	ButtonAlign,
+	WaveformMarker,
+	WaveformPeaks,
+} from '@arraypress/waveform-player';
 
 /**
  * Props accepted by the `<WaveformPlayer>` Astro component.
  *
- * Grouped to mirror the README sections:
- *   1. Audio source
- *   2. Waveform visualisation
- *   3. Colours
- *   4. Playback controls
- *   5. UI toggles
- *   6. Markers
- *   7. Content metadata
- *   8. Behaviour flags
- *   9. Icons
- *  10. Astro-specific extras
+ * Inherits every construction option from the core library's
+ * {@link WaveformPlayerOptions} (including `accessibleSeek`, `seekLabel`,
+ * `barRadius`, and the gradient-array forms of `waveformColor` /
+ * `progressColor`) and layers on the Astro-specific extras. Two groups of
+ * core options are deliberately removed:
+ *
+ *  - `url` — optional on the core options, but **required** here (the
+ *    wrapper exists to render a player, which needs a source). Redeclared
+ *    below as a required `string`.
+ *  - the `on*` lifecycle callbacks (`onLoad`, `onPlay`, …) — these are JS
+ *    functions, and a server-rendered Astro component emits static HTML
+ *    plus `data-*` attributes with nothing to attach a runtime callback
+ *    to. Consumers wire lifecycle handling via the DOM
+ *    `waveformplayer:*` events instead.
+ *
+ * Because the option surface is inherited rather than hand-copied, anything
+ * the core adds in future is exposed here without a manual edit.
  */
-export interface WaveformPlayerProps {
+export interface WaveformPlayerProps
+	extends Omit<
+		WaveformPlayerOptions,
+		| 'url'
+		| 'onLoad'
+		| 'onPlay'
+		| 'onPause'
+		| 'onEnd'
+		| 'onError'
+		| 'onTimeUpdate'
+	> {
 	// ─────────────────────────────────────────────────────────────────────
-	// 1. Audio source
+	// Audio source (Astro-required override)
 	// ─────────────────────────────────────────────────────────────────────
 
 	/**
@@ -130,285 +97,8 @@ export interface WaveformPlayerProps {
 	 */
 	url: string;
 
-	/**
-	 * Whether the player owns its `<audio>` element (`self`) or only
-	 * renders visualisation and emits request events (`external`).
-	 *
-	 * Use `external` together with `@arraypress/waveform-bar` for
-	 * persistent-bar setups where one audio element drives many visual
-	 * surfaces across the page.
-	 *
-	 * @default 'self'
-	 */
-	audioMode?: AudioMode;
-
-	/**
-	 * Browser preload hint for the underlying `<audio>` element.
-	 *
-	 * @default 'metadata'
-	 */
-	preload?: AudioPreload;
-
 	// ─────────────────────────────────────────────────────────────────────
-	// 2. Waveform visualisation
-	// ─────────────────────────────────────────────────────────────────────
-
-	/**
-	 * Which waveform render style to use.
-	 *
-	 * @default 'mirror'
-	 */
-	waveformStyle?: WaveformStyle;
-
-	/**
-	 * Canvas height in pixels.
-	 *
-	 * @default 60
-	 */
-	height?: number;
-
-	/**
-	 * Number of peak samples to render across the waveform. Higher values
-	 * give finer detail at the cost of slightly higher CPU and a busier
-	 * visual. 100–300 is the sweet spot for most player widths.
-	 *
-	 * @default 200
-	 */
-	samples?: number;
-
-	/**
-	 * Width of each bar/block in pixels (where applicable). Defaults
-	 * depend on `waveformStyle` (e.g. `2` for `mirror`, `3` for `bars`).
-	 */
-	barWidth?: number;
-
-	/**
-	 * Gap between adjacent bars/blocks in pixels. Defaults depend on
-	 * `waveformStyle`.
-	 */
-	barSpacing?: number;
-
-	/**
-	 * Rounded bar-cap radius in pixels (bars/mirror styles). `0` = square.
-	 * @default 0
-	 */
-	barRadius?: number;
-
-	/**
-	 * Pre-computed peaks data. See {@link WaveformPeaks}.
-	 *
-	 * - `number[]` is JSON-stringified into the emitted attribute.
-	 * - `string` (URL or inline JSON) is emitted verbatim — the library
-	 *   parses it.
-	 */
-	waveform?: WaveformPeaks;
-
-	// ─────────────────────────────────────────────────────────────────────
-	// 3. Colours
-	// ─────────────────────────────────────────────────────────────────────
-
-	/**
-	 * Forced colour preset. `null` auto-detects from the page theme.
-	 *
-	 * Individual `*Color` props always win over the preset, letting you
-	 * keep the auto-detection but tweak one or two colours.
-	 *
-	 * @default null
-	 */
-	colorPreset?: ColorPreset;
-
-	/** Colour of the unplayed waveform peaks. A CSS colour string, or an array of stops for a vertical gradient (e.g. `['#fafafa', '#71717a']`). */
-	waveformColor?: string | string[];
-	/** Colour of the played-through portion. Also accepts an array of stops for a gradient. */
-	progressColor?: string | string[];
-	/** Border/text colour of the play button. */
-	buttonColor?: string;
-	/** Play button hover colour. */
-	buttonHoverColor?: string;
-	/** Primary text colour (title). */
-	textColor?: string;
-	/** Secondary text colour (subtitle, time). */
-	textSecondaryColor?: string;
-	/** Reserved for future use; currently no visible effect. */
-	backgroundColor?: string;
-	/** Reserved for future use; currently no visible effect. */
-	borderColor?: string;
-
-	// ─────────────────────────────────────────────────────────────────────
-	// 4. Playback controls
-	// ─────────────────────────────────────────────────────────────────────
-
-	/**
-	 * Initial playback rate (1 = normal speed; 0.5..2 supported).
-	 *
-	 * @default 1
-	 */
-	playbackRate?: number;
-
-	/**
-	 * Whether to render the playback-speed control menu.
-	 *
-	 * @default false
-	 */
-	showPlaybackSpeed?: boolean;
-
-	/**
-	 * List of speeds to offer in the speed menu.
-	 *
-	 * @default [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2]
-	 */
-	playbackRates?: number[];
-
-	// ─────────────────────────────────────────────────────────────────────
-	// 5. UI toggles
-	// ─────────────────────────────────────────────────────────────────────
-
-	/**
-	 * Show the play/pause button.
-	 *
-	 * @default true
-	 */
-	showControls?: boolean;
-
-	/**
-	 * Show the info bar (title, subtitle, time, BPM, speed).
-	 *
-	 * @default true
-	 */
-	showInfo?: boolean;
-
-	/**
-	 * Show the current-time / total-time readout.
-	 *
-	 * @default true
-	 */
-	showTime?: boolean;
-
-	/**
-	 * Show a hover-time indicator on the waveform (reserved — not all
-	 * library versions implement this yet).
-	 *
-	 * @default false
-	 */
-	showHoverTime?: boolean;
-
-	/**
-	 * Detect and display the track's BPM in the info bar.
-	 *
-	 * Adds a ~50–200 ms onset-detection pass on first load.
-	 *
-	 * @default false
-	 */
-	showBPM?: boolean;
-
-	/**
-	 * Where to align the play button vertically relative to the waveform.
-	 *
-	 * @default 'auto'
-	 */
-	buttonAlign?: ButtonAlign;
-
-	// ─────────────────────────────────────────────────────────────────────
-	// 6. Markers
-	// ─────────────────────────────────────────────────────────────────────
-
-	/**
-	 * Chapter markers to render on the waveform. Each becomes a clickable
-	 * seek point.
-	 *
-	 * Emitted as JSON-stringified `data-markers`. The library parses it.
-	 */
-	markers?: WaveformMarker[];
-
-	/**
-	 * Whether to render markers at all. Useful for hiding markers in
-	 * compact layouts while still passing them in for future use.
-	 *
-	 * @default true
-	 */
-	showMarkers?: boolean;
-
-	// ─────────────────────────────────────────────────────────────────────
-	// 7. Content metadata
-	// ─────────────────────────────────────────────────────────────────────
-
-	/**
-	 * Track title shown in the info bar. Falls back to a prettified
-	 * filename extracted from the URL.
-	 */
-	title?: string;
-
-	/**
-	 * Subtitle shown under the title — typically the artist name.
-	 */
-	subtitle?: string;
-
-	/**
-	 * Album / collection cover image URL displayed as a thumbnail.
-	 */
-	artwork?: string;
-
-	/**
-	 * Album name. Passed through to the Media Session API for lockscreen
-	 * and OS-level media displays.
-	 */
-	album?: string;
-
-	// ─────────────────────────────────────────────────────────────────────
-	// 8. Behaviour flags
-	// ─────────────────────────────────────────────────────────────────────
-
-	/**
-	 * Start playback as soon as audio metadata loads.
-	 *
-	 * Note that most browsers block autoplay with audible audio unless
-	 * the user has interacted with the page first.
-	 *
-	 * @default false
-	 */
-	autoplay?: boolean;
-
-	/**
-	 * Pause any other `WaveformPlayer` on the page when this one starts.
-	 *
-	 * @default true
-	 */
-	singlePlay?: boolean;
-
-	/**
-	 * Resume playback automatically when the user seeks on a paused
-	 * waveform.
-	 *
-	 * @default true
-	 */
-	playOnSeek?: boolean;
-
-	/**
-	 * Wire up the browser's Media Session API so OS media keys, lock
-	 * screens, and bluetooth controls drive the player.
-	 *
-	 * @default true
-	 */
-	enableMediaSession?: boolean;
-
-	// ─────────────────────────────────────────────────────────────────────
-	// 9. Icons
-	// ─────────────────────────────────────────────────────────────────────
-
-	/**
-	 * Inline HTML/SVG to use for the play button. Anything you pass is
-	 * injected raw — use trusted markup only.
-	 */
-	playIcon?: string;
-
-	/**
-	 * Inline HTML/SVG to use for the pause button. Anything you pass is
-	 * injected raw — use trusted markup only.
-	 */
-	pauseIcon?: string;
-
-	// ─────────────────────────────────────────────────────────────────────
-	// 10. Astro-specific extras
+	// Astro-specific extras
 	// ─────────────────────────────────────────────────────────────────────
 
 	/**
