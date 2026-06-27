@@ -343,7 +343,7 @@ const initAttr = lazy ? 'data-waveform-player-lazy' : 'data-waveform-player';
 							try {
 								window.WaveformPlayer && window.WaveformPlayer.init();
 							} catch (err) {
-								console.error('[waveform-player-astro] init failed:', err);
+								console.error('[WaveformPlayerAstro] init failed:', err);
 							}
 						});
 					},
@@ -371,7 +371,7 @@ const initAttr = lazy ? 'data-waveform-player-lazy' : 'data-waveform-player';
 					}
 					if (++attempts > MAX_WAIT_ATTEMPTS) {
 						console.warn(
-							'[waveform-player-astro] window.WaveformPlayer not found after ' +
+							'[WaveformPlayerAstro] window.WaveformPlayer not found after ' +
 								MAX_WAIT_ATTEMPTS +
 								' attempts; lazy players will not mount. Did you load ' +
 								"@arraypress/waveform-player's script?"
@@ -417,7 +417,7 @@ const initAttr = lazy ? 'data-waveform-player-lazy' : 'data-waveform-player';
 				try {
 					window.WaveformPlayer && window.WaveformPlayer.init();
 				} catch (err) {
-					console.error('[waveform-player-astro] init failed:', err);
+					console.error('[WaveformPlayerAstro] init failed:', err);
 				}
 			});
 		})();
