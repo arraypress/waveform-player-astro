@@ -1,6 +1,6 @@
 {
   "name": "@arraypress/waveform-player-astro",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Astro component wrapper for @arraypress/waveform-player — typed props for every option, lazy-mount support, framework-idiomatic ergonomics.",
   "type": "module",
   "files": [
@@ -62,7 +62,7 @@
     "registry": "https://registry.npmjs.org/"
   },
   "peerDependencies": {
-    "@arraypress/waveform-player": "^1.6.0",
+    "@arraypress/waveform-player": "^1.7.2",
     "astro": "^6.0.0 || ^7.0.0"
   },
   "scripts": {
@@ -71,7 +71,7 @@
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
-    "@arraypress/waveform-player": "^1.6.0",
+    "@arraypress/waveform-player": "^1.7.2",
     "astro": "^6.3.7",
     "typescript": "^6.0.3",
     "vitest": "^4.1.7"
