@@ -72,8 +72,8 @@
   },
   "devDependencies": {
     "@arraypress/waveform-player": "^1.8.0",
-    "astro": "^6.3.7",
+    "astro": "^7.0.3",
     "typescript": "^6.0.3",
-    "vitest": "^4.1.7"
+    "vitest": "^4.1.9"
   }
 }

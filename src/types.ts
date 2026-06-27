@@ -64,6 +64,11 @@ export type {
  *  - `url` — optional on the core options, but **required** here (the
  *    wrapper exists to render a player, which needs a source). Redeclared
  *    below as a required `string`.
+ *  - `style` — the core exposes `style` as a shorthand alias for
+ *    {@link WaveformStyle} (`data-style`), but in an Astro component `style`
+ *    is the HTML inline-style attribute. We remove the core's alias and
+ *    redeclare `style` below as the inline-CSS `string`; consumers select
+ *    the visual style via the canonical `waveformStyle` prop instead.
  *  - the `on*` lifecycle callbacks (`onLoad`, `onPlay`, …) — these are JS
  *    functions, and a server-rendered Astro component emits static HTML
  *    plus `data-*` attributes with nothing to attach a runtime callback
@@ -77,6 +82,7 @@ export interface WaveformPlayerProps
 	extends Omit<
 		WaveformPlayerOptions,
 		| 'url'
+		| 'style'
 		| 'onLoad'
 		| 'onPlay'
 		| 'onPause'
