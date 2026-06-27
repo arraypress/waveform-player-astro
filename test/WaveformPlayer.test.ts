@@ -409,6 +409,36 @@ describe('<WaveformPlayer> — lazy mount', () => {
 		expect(eager).not.toContain('__wfpLazyMountBound');
 		expect(eager).not.toContain('IntersectionObserver');
 	});
+
+	it('waits for window.WaveformPlayer with a bounded retry before giving up', async () => {
+		const lazy = await render({ url: '/a.mp3', lazy: true });
+
+		// The lazy mount must not silently bail when the core script has not
+		// installed window.WaveformPlayer yet — it retries a bounded number
+		// of times (no busy-loop) and then warns.
+		expect(lazy).toContain('MAX_WAIT_ATTEMPTS');
+		expect(lazy).toContain('setTimeout');
+		expect(lazy).toContain('console.warn');
+	});
+});
+
+// ─── View Transitions re-init (non-lazy) ─────────────────────────────────
+
+describe('<WaveformPlayer> — View Transitions re-init', () => {
+	it('ships a non-lazy re-init script that re-runs init on astro:page-load', async () => {
+		const eager = await render({ url: '/a.mp3', lazy: false });
+
+		// Non-lazy players must re-initialise after client-side navigation
+		// because the core only auto-inits on DOMContentLoaded.
+		expect(eager).toContain('__wfpInitBound');
+		expect(eager).toContain('astro:page-load');
+		expect(eager).toContain('WaveformPlayer.init()');
+	});
+
+	it('does NOT ship the non-lazy re-init script when lazy is true', async () => {
+		const lazy = await render({ url: '/a.mp3', lazy: true });
+		expect(lazy).not.toContain('__wfpInitBound');
+	});
 });
 
 // ─── Astro extras ────────────────────────────────────────────────────────

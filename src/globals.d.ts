@@ -76,6 +76,17 @@ declare global {
 		 * @internal
 		 */
 		__wfpLazyMountBound?: boolean;
+
+		/**
+		 * Internal — set by the non-lazy `<WaveformPlayer>`'s inline
+		 * script to deduplicate the `astro:page-load` re-init listener
+		 * that re-runs `WaveformPlayer.init()` after View Transitions
+		 * navigations. Do not rely on this; it is an implementation
+		 * detail.
+		 *
+		 * @internal
+		 */
+		__wfpInitBound?: boolean;
 	}
 }
 

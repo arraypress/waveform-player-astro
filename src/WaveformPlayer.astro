@@ -64,7 +64,22 @@
  * `IntersectionObserver` script that promotes lazy mounts when they
  * approach the viewport. The script self-deduplicates via
  * `window.__wfpLazyMountBound` so multiple `<WaveformPlayer lazy>`
- * instances on the same page reuse a single observer.
+ * instances on the same page reuse a single observer. If the core
+ * library's script hasn't loaded yet, the lazy script waits for
+ * `window.WaveformPlayer` via a small bounded retry rather than silently
+ * never mounting.
+ *
+ * ## Astro View Transitions
+ *
+ * The core library auto-initialises on `DOMContentLoaded` only. Under
+ * Astro View Transitions, client-side navigations swap the DOM without
+ * re-firing `DOMContentLoaded`, so a freshly-rendered (non-lazy) player
+ * would never be mounted after navigation. To cover that, non-lazy
+ * instances ship a tiny one-time script that re-runs the core's
+ * (idempotent) `WaveformPlayer.init()` on every `astro:page-load`.
+ * It self-deduplicates via `window.__wfpInitBound`, and the core skips
+ * any container already flagged `data-waveform-initialized`, so the
+ * re-init is safe to call repeatedly.
  *
  * @example Basic
  *   <WaveformPlayer url="/audio/track.mp3" title="My Track" />
@@ -283,7 +298,7 @@ const initAttr = lazy ? 'data-waveform-player-lazy' : 'data-waveform-player';
 	style={style}
 ></div>
 
-{lazy && (
+{lazy ? (
 	<script is:inline>
 		/**
 		 * Lazy-mount watcher for `<WaveformPlayer lazy>` instances.
@@ -301,26 +316,32 @@ const initAttr = lazy ? 'data-waveform-player-lazy' : 'data-waveform-player';
 		 *
 		 * Re-runs on Astro `astro:page-load` so cross-page navigations
 		 * pick up newly-rendered lazy mounts.
+		 *
+		 * If the core library's script hasn't installed `window.WaveformPlayer`
+		 * yet (e.g. on a plain page where this inline script runs before the
+		 * library's `<script>`), we wait for it via a small bounded retry
+		 * instead of returning and never mounting.
 		 */
 		(function () {
 			if (window.__wfpLazyMountBound) return;
 			window.__wfpLazyMountBound = true;
 
-			function mountLazy() {
-				if (!window.WaveformPlayer) return;
-				const targets = document.querySelectorAll('[data-waveform-player-lazy]');
+			var MAX_WAIT_ATTEMPTS = 20; // ~1s total at 50ms between attempts
+
+			function observeLazyMounts() {
+				var targets = document.querySelectorAll('[data-waveform-player-lazy]');
 				if (!targets.length) return;
 
-				const io = new IntersectionObserver(
-					(entries) => {
-						entries.forEach((entry) => {
+				var io = new IntersectionObserver(
+					function (entries) {
+						entries.forEach(function (entry) {
 							if (!entry.isIntersecting) return;
-							const el = entry.target;
+							var el = entry.target;
 							el.removeAttribute('data-waveform-player-lazy');
 							el.setAttribute('data-waveform-player', '');
 							io.unobserve(el);
 							try {
-								window.WaveformPlayer.init();
+								window.WaveformPlayer && window.WaveformPlayer.init();
 							} catch (err) {
 								console.error('[waveform-player-astro] init failed:', err);
 							}
@@ -329,7 +350,36 @@ const initAttr = lazy ? 'data-waveform-player-lazy' : 'data-waveform-player';
 					{ rootMargin: '200px 0px 200px 0px', threshold: 0.01 }
 				);
 
-				targets.forEach((target) => io.observe(target));
+				targets.forEach(function (target) {
+					io.observe(target);
+				});
+			}
+
+			function mountLazy() {
+				// Core already present — wire up the observer immediately.
+				if (window.WaveformPlayer) {
+					observeLazyMounts();
+					return;
+				}
+				// Core script not loaded yet. Poll a bounded number of times
+				// for `window.WaveformPlayer` rather than silently giving up.
+				var attempts = 0;
+				(function waitForCore() {
+					if (window.WaveformPlayer) {
+						observeLazyMounts();
+						return;
+					}
+					if (++attempts > MAX_WAIT_ATTEMPTS) {
+						console.warn(
+							'[waveform-player-astro] window.WaveformPlayer not found after ' +
+								MAX_WAIT_ATTEMPTS +
+								' attempts; lazy players will not mount. Did you load ' +
+								"@arraypress/waveform-player's script?"
+						);
+						return;
+					}
+					setTimeout(waitForCore, 50);
+				})();
 			}
 
 			document.addEventListener('astro:page-load', mountLazy);
@@ -338,6 +388,38 @@ const initAttr = lazy ? 'data-waveform-player-lazy' : 'data-waveform-player';
 			} else {
 				document.addEventListener('DOMContentLoaded', mountLazy);
 			}
+		})();
+	</script>
+) : (
+	<script is:inline>
+		/**
+		 * View Transitions re-init for non-lazy `<WaveformPlayer>` instances.
+		 *
+		 * The core library auto-initialises on `DOMContentLoaded` only.
+		 * Under Astro View Transitions, client-side navigations swap the DOM
+		 * without re-firing `DOMContentLoaded`, so freshly-rendered
+		 * `[data-waveform-player]` containers would never be mounted after a
+		 * navigation. Re-run the core initialiser on every `astro:page-load`.
+		 *
+		 * `WaveformPlayer.init()` is idempotent — it skips any container
+		 * already flagged `data-waveform-initialized` (which the core sets on
+		 * first mount) — so calling it repeatedly only mounts the new ones.
+		 *
+		 * Deduplicated via `window.__wfpInitBound` so multiple non-lazy
+		 * instances bind a single shared `astro:page-load` listener that
+		 * persists across navigations.
+		 */
+		(function () {
+			if (window.__wfpInitBound) return;
+			window.__wfpInitBound = true;
+
+			document.addEventListener('astro:page-load', function () {
+				try {
+					window.WaveformPlayer && window.WaveformPlayer.init();
+				} catch (err) {
+					console.error('[waveform-player-astro] init failed:', err);
+				}
+			});
 		})();
 	</script>
 )}
