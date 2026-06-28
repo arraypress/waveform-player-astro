@@ -1,6 +1,6 @@
 {
   "name": "@arraypress/waveform-player-astro",
-  "version": "0.1.3",
+  "version": "0.2.0",
   "description": "Astro component wrapper for @arraypress/waveform-player — typed props for every option, lazy-mount support, framework-idiomatic ergonomics.",
   "type": "module",
   "files": [
