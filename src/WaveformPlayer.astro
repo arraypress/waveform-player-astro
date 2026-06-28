@@ -145,6 +145,7 @@ const {
 	buttonAlign,
 	layout,
 	buttonStyle,
+	buttonSize,
 	// Accessibility + error UI
 	accessibleSeek,
 	seekLabel,
@@ -269,6 +270,7 @@ setNum('data-bpm', bpm);
 setStr('data-button-align', buttonAlign ?? null);
 setStr('data-layout', layout ?? null);
 setStr('data-button-style', buttonStyle ?? null);
+setStr('data-button-size', buttonSize != null ? String(buttonSize) : null);
 
 // ─── Accessibility + error UI ────────────────────────────────────────────
 setBool('data-accessible-seek', accessibleSeek);
