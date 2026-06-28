@@ -141,7 +141,10 @@ const {
 	showTime,
 	showHoverTime,
 	showBPM,
+	bpm,
 	buttonAlign,
+	layout,
+	buttonStyle,
 	// Accessibility + error UI
 	accessibleSeek,
 	seekLabel,
@@ -262,7 +265,10 @@ setBool('data-show-hover-time', showHoverTime);
 // The library's data-attribute parser reads `data-show-bpm` (lowercased
 // `bpm`), NOT `data-show-b-p-m`. Get this wrong and BPM never displays.
 setBool('data-show-bpm', showBPM);
+setNum('data-bpm', bpm);
 setStr('data-button-align', buttonAlign ?? null);
+setStr('data-layout', layout ?? null);
+setStr('data-button-style', buttonStyle ?? null);
 
 // ─── Accessibility + error UI ────────────────────────────────────────────
 setBool('data-accessible-seek', accessibleSeek);
