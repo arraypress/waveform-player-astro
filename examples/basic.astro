@@ -36,11 +36,11 @@ import wfpJsUrl from '@arraypress/waveform-player/dist/waveform-player.min.js?ur
 
 		<section>
 			<h2>2. With metadata + chosen style</h2>
-			<p>Title, subtitle, bar-style waveform with custom width and spacing.</p>
+			<p>Title, artist, bar-style waveform with custom width and spacing.</p>
 			<WaveformPlayer
 				url="/audio/track.mp3"
 				title="Midnight Dreams"
-				subtitle="The Wavelength"
+				artist="The Wavelength"
 				artwork="/img/cover.jpg"
 				waveformStyle="bars"
 				barWidth={3}
@@ -65,7 +65,7 @@ import wfpJsUrl from '@arraypress/waveform-player/dist/waveform-player.min.js?ur
 			<WaveformPlayer
 				url="/audio/podcast.mp3"
 				title="Episode 42"
-				subtitle="with Guest"
+				artist="with Guest"
 				markers={[
 					{ time: 0, label: 'Intro' },
 					{ time: 60, label: 'Main topic', color: '#a855f7' },
@@ -81,7 +81,7 @@ import wfpJsUrl from '@arraypress/waveform-player/dist/waveform-player.min.js?ur
 			<WaveformPlayer
 				url="/audio/track.mp3"
 				title="Show me everything"
-				subtitle="Producer X"
+				artist="Producer X"
 				artwork="/img/cover.jpg"
 				album="The Album"
 				waveformStyle="mirror"

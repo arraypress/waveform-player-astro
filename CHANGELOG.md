@@ -62,7 +62,7 @@ Initial release.
   - UI toggle props (`showControls`, `showInfo`, `showTime`,
     `showHoverTime`, `showBPM`, `buttonAlign`)
   - Marker props (`markers`, `showMarkers`)
-  - Content metadata props (`title`, `subtitle`, `artwork`, `album`)
+  - Content metadata props (`title`, `artist`, `artwork`, `album`)
   - Behaviour flags (`autoplay`, `singlePlay`, `playOnSeek`,
     `enableMediaSession`)
   - Icon props (`playIcon`, `pauseIcon`)

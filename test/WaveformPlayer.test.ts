@@ -150,7 +150,7 @@ describe('<WaveformPlayer> — minimal props', () => {
 		expectNoAttr(html, 'data-button-align');
 		expectNoAttr(html, 'data-markers');
 		expectNoAttr(html, 'data-title');
-		expectNoAttr(html, 'data-subtitle');
+		expectNoAttr(html, 'data-artist');
 		expectNoAttr(html, 'data-artwork');
 		expectNoAttr(html, 'data-album');
 		expectNoAttr(html, 'data-autoplay');
@@ -336,17 +336,17 @@ describe('<WaveformPlayer> — markers', () => {
 // ─── Metadata ────────────────────────────────────────────────────────────
 
 describe('<WaveformPlayer> — content metadata', () => {
-	it('emits title, subtitle, artwork, album when set', async () => {
+	it('emits title, artist, artwork, album when set', async () => {
 		const html = await render({
 			url: '/a.mp3',
 			title: 'My Track',
-			subtitle: 'Artist Name',
+			artist: 'Artist Name',
 			artwork: '/img/cover.jpg',
 			album: 'The Album',
 		});
 
 		expect(getAttr(html, 'data-title')).toBe('My Track');
-		expect(getAttr(html, 'data-subtitle')).toBe('Artist Name');
+		expect(getAttr(html, 'data-artist')).toBe('Artist Name');
 		expect(getAttr(html, 'data-artwork')).toBe('/img/cover.jpg');
 		expect(getAttr(html, 'data-album')).toBe('The Album');
 	});
@@ -495,7 +495,7 @@ describe('<WaveformPlayer> — realistic combined usage', () => {
 			],
 			showMarkers: true,
 			title: 'My Track',
-			subtitle: 'Artist Name',
+			artist: 'Artist Name',
 			artwork: '/img/cover.jpg',
 			album: 'The Album',
 			autoplay: false,

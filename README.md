@@ -67,7 +67,7 @@ Then `<WaveformPlayer>` works on any page.
 <WaveformPlayer
   url="/audio/track.mp3"
   title="Midnight Dreams"
-  subtitle="The Wavelength"
+  artist="The Wavelength"
   artwork="/img/cover.jpg"
   waveformStyle="bars"
   barWidth={3}
@@ -206,7 +206,7 @@ All optional. `colorPreset` controls the auto theme, and any individual colour w
 | Prop       | Type     | Description |
 | ---------- | -------- | ----------- |
 | `title`    | `string` | Track title (defaults to a prettified filename). |
-| `subtitle` | `string` | Subtitle / artist. |
+| `artist`   | `string` | Artist / secondary line shown below the title. |
 | `artwork`  | `string` | Thumbnail image URL. |
 | `album`    | `string` | Album name (Media Session API). |
 
