@@ -160,12 +160,8 @@ All optional. `colorPreset` controls the auto theme, and any individual colour w
 | `colorPreset`         | `'dark' \| 'light' \| null`     | `null` (default) auto-detects. |
 | `waveformColor`       | `string`                        | Unplayed peak colour. |
 | `progressColor`       | `string`                        | Played-through peak colour. |
-| `buttonColor`         | `string`                        | Play-button colour. |
-| `buttonHoverColor`    | `string`                        | Play-button hover colour. |
-| `textColor`           | `string`                        | Primary text colour. |
-| `textSecondaryColor`  | `string`                        | Secondary text colour. |
-| `backgroundColor`     | `string`                        | Reserved. |
-| `borderColor`         | `string`                        | Reserved. |
+
+The DOM chrome (button, title, meta text) is themed via CSS variables — `--wfp-button-color`, `--wfp-text-color`, `--wfp-text-secondary-color` — not JS options; override them in your own CSS.
 
 ### Playback controls
 

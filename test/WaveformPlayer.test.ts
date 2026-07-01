@@ -232,22 +232,10 @@ describe('<WaveformPlayer> — colour props', () => {
 			url: '/a.mp3',
 			waveformColor: '#abc',
 			progressColor: 'rgb(0,0,0)',
-			buttonColor: 'white',
-			buttonHoverColor: 'red',
-			textColor: '#fff',
-			textSecondaryColor: '#999',
-			backgroundColor: '#111',
-			borderColor: 'rgba(0,0,0,0.1)',
 		});
 
 		expect(getAttr(html, 'data-waveform-color')).toBe('#abc');
 		expect(getAttr(html, 'data-progress-color')).toBe('rgb(0,0,0)');
-		expect(getAttr(html, 'data-button-color')).toBe('white');
-		expect(getAttr(html, 'data-button-hover-color')).toBe('red');
-		expect(getAttr(html, 'data-text-color')).toBe('#fff');
-		expect(getAttr(html, 'data-text-secondary-color')).toBe('#999');
-		expect(getAttr(html, 'data-background-color')).toBe('#111');
-		expect(getAttr(html, 'data-border-color')).toBe('rgba(0,0,0,0.1)');
 	});
 });
 

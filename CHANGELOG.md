@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Removed
+
+- **BREAKING:** the six DOM-chrome colour props — `buttonColor`,
+  `buttonHoverColor`, `textColor`, `textSecondaryColor`, `backgroundColor`,
+  and `borderColor` — are gone (the core library moved this chrome to CSS
+  variables). Theme the button and text via `--wfp-button-color`,
+  `--wfp-text-color`, `--wfp-text-secondary-color`, etc. in your own CSS
+  instead. `waveformColor`, `progressColor`, `colorPreset`, and
+  `waveformGradient` remain props.
+
 ### Changed
 
 - Types are now sourced directly from the core
